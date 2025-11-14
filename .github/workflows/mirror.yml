@@ -6,7 +6,7 @@ on:
 
 jobs:
   mirror:
-    if: github.repository == 'mylordkaz/amptalk-test' && github.event.pull_request.merged == true
+    if: github.repository == 'mylordkaz/amptalk-test' 
     runs-on: ubuntu-latest
 
     steps:
