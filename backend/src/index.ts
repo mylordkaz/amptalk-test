@@ -24,7 +24,7 @@ app.get("/health", (_req, res) => {
   res.json({ status: "ok", message: "Backend is running!" });
 });
 
-// Render sets PORT for you
+
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`API listening on :${PORT}`);
