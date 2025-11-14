@@ -1,0 +1,23 @@
+# IDEs and editors
+.vscode
+.idea
+.project
+
+# Logs
+logs
+*.log
+
+# Dependency directories
+node_modules/
+
+# Environment variables file
+.env
+
+# System Files
+.DS_Store
+.fleet
+.idea
+Thumbs.db
+
+# Local env files
+.env
