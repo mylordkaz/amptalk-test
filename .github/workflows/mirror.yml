@@ -16,9 +16,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Ensure we’re on the latest main
+      - name: Ensure we're on the latest main
         run: |
-          git fetch origin main --depth=0
+          git fetch origin main
           git checkout main
           git pull --ff-only origin main
 
