@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import imageRoutes from "./routes/imageRoutes";
 
 dotenv.config();
 
@@ -9,6 +10,9 @@ const app = express();
 app.use(cors({ origin: true, credentials: true }));
 
 app.use(express.json());
+
+// API Routes
+app.use("/api/images", imageRoutes);
 
 app.get("/", (_req, res) => {
   res.send({ ok: true, service: "api", time: new Date().toISOString() });
