@@ -1,0 +1,37 @@
+name: Mirror to Amptalk
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+jobs:
+  mirror:
+    if: github.repository == 'mylordkaz/amptalk-test' && github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout (full history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Ensure we’re on the latest main
+        run: |
+          git fetch origin main --depth=0
+          git checkout main
+          git pull --ff-only origin main
+
+      - name: Set up Git
+        run: |
+          git config --global user.name  "mirror-bot"
+          git config --global user.email "mirror-bot@users.noreply.github.com"
+
+      - name: Add Amptalk remote
+        run: |
+          git remote add amptalk "https://x-access-token:${{ secrets.MIRROR_TOKEN }}@github.com/amptalk-coding-assignments/Kevin-Timsiline.git"
+
+      - name: Push main only
+        run: |
+          git push -f amptalk refs/heads/main:refs/heads/main
+
