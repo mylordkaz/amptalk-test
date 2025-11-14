@@ -32,6 +32,9 @@ importers:
       multer:
         specifier: ^2.0.2
         version: 2.0.2
+      prisma:
+        specifier: ^6.1.0
+        version: 6.19.0(magicast@0.3.5)(typescript@5.9.3)
     devDependencies:
       '@types/cors':
         specifier: ^2.8.19
@@ -60,9 +63,6 @@ importers:
       nodemon:
         specifier: ^3.1.11
         version: 3.1.11
-      prisma:
-        specifier: ^6.1.0
-        version: 6.19.0(magicast@0.3.5)(typescript@5.9.3)
       supertest:
         specifier: ^7.0.0
         version: 7.1.4
