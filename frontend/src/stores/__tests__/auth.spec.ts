@@ -30,11 +30,12 @@ describe('Auth Store', () => {
 
   it('sets user and isAuthenticated on successful login', async () => {
     const store = useAuthStore()
-    const mockUser = { id: '1', email: 'test@example.com', createdAt: new Date() }
+    const mockUser = { id: '1', email: 'test@example.com', createdAt: new Date().toISOString() }
 
     vi.mocked(authApi.login).mockResolvedValue({
       success: true,
       user: mockUser,
+      message: 'Login successful',
     })
 
     await store.login({ email: 'test@example.com', password: 'Password123!' })
@@ -65,17 +66,18 @@ describe('Auth Store', () => {
 
   it('clears user state on logout', async () => {
     const store = useAuthStore()
-    const mockUser = { id: '1', email: 'test@example.com', createdAt: new Date() }
+    const mockUser = { id: '1', email: 'test@example.com', createdAt: new Date().toISOString() }
 
     // Set up logged-in state
     vi.mocked(authApi.login).mockResolvedValue({
       success: true,
       user: mockUser,
+      message: 'Login successful',
     })
     await store.login({ email: 'test@example.com', password: 'Password123!' })
 
     // Mock logout
-    vi.mocked(authApi.logout).mockResolvedValue({ success: true })
+    vi.mocked(authApi.logout).mockResolvedValue({ success: true, message: 'Logged out successfully' })
 
     // Logout
     await store.logout()
@@ -97,7 +99,7 @@ describe('Auth Store', () => {
     const store = useAuthStore()
 
     // Set some state
-    store.user = { id: '1', email: 'test@example.com', createdAt: new Date() }
+    store.user = { id: '1', email: 'test@example.com', createdAt: new Date().toISOString() }
     store.error = 'Some error'
 
     store.clearAuth()

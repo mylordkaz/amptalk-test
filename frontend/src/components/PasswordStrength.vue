@@ -8,9 +8,11 @@ const props = defineProps<{
 
 const strength = computed(() => calculatePasswordStrength(props.password))
 
-const strengthColor = computed(() => {
-  const colors = ['gray', 'red', 'orange', 'yellow', 'green']
-  return colors[Math.min(strength.value.score, 4)]
+type ColorType = 'gray' | 'red' | 'orange' | 'yellow' | 'green'
+
+const strengthColor = computed<ColorType>(() => {
+  const colors: ColorType[] = ['gray', 'red', 'orange', 'yellow', 'green']
+  return colors[Math.min(strength.value.score, 4)]!
 })
 
 const strengthLabel = computed(() => {
