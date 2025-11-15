@@ -1,141 +1,163 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
+import { AuthRequest } from '../types';
 import cloudinary from '../config/cloudinary';
 import prisma from '../lib/db';
 import { Readable } from 'stream';
 
 // Function to convert buffer to stream
 const bufferToStream = (buffer: Buffer): Readable => {
-  const readable = new Readable();
-  readable._read = () => {};
-  readable.push(buffer);
-  readable.push(null);
-  return readable;
+	const readable = new Readable();
+	readable._read = () => { };
+	readable.push(buffer);
+	readable.push(null);
+	return readable;
 };
 
 // Upload image to Cloudinary and save metadata to database
-export const uploadImage = async (req: Request, res: Response) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
-    }
+export const uploadImage = async (req: AuthRequest, res: Response) => {
+	try {
+		if (!req.file) {
+			return res.status(400).json({ error: 'No file uploaded' });
+		}
 
-    // Assuming userId is passed in the request body
-    const { userId } = req.body;
+		// Get userId from authenticated user
+		if (!req.user) {
+			return res.status(401).json({ error: 'Authentication required' });
+		}
 
-    if (!userId) {
-      return res.status(400).json({ error: 'User ID is required' });
-    }
+		const userId = req.user.id;
 
-    // Upload to Cloudinary using upload_stream
-    const uploadResult = await new Promise((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
-        {
-          folder: 'user-images',
-          resource_type: 'image',
-        },
-        (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
-        }
-      );
+		// Upload to Cloudinary using upload_stream
+		const uploadResult = await new Promise((resolve, reject) => {
+			const uploadStream = cloudinary.uploader.upload_stream(
+				{
+					folder: 'user-images',
+					resource_type: 'image',
+				},
+				(error, result) => {
+					if (error) reject(error);
+					else resolve(result);
+				}
+			);
 
-      bufferToStream(req.file!.buffer).pipe(uploadStream);
-    });
+			bufferToStream(req.file!.buffer).pipe(uploadStream);
+		});
 
-    const cloudinaryResult = uploadResult as any;
+		const cloudinaryResult = uploadResult as any;
 
-    // Save image metadata to database
-    const image = await prisma.image.create({
-      data: {
-        userId: userId,
-        filename: req.file.originalname,
-        publicUrl: cloudinaryResult.secure_url,
-        cloudinaryId: cloudinaryResult.public_id,
-        fileSize: req.file.size,
-        mimeType: req.file.mimetype,
-      },
-    });
+		// Save image metadata to database
+		const image = await prisma.image.create({
+			data: {
+				userId: userId,
+				filename: req.file.originalname,
+				publicUrl: cloudinaryResult.secure_url,
+				cloudinaryId: cloudinaryResult.public_id,
+				fileSize: req.file.size,
+				mimeType: req.file.mimetype,
+			},
+		});
 
-    res.status(201).json({
-      message: 'Image uploaded successfully',
-      image,
-    });
-  } catch (error) {
-    console.error('Upload error:', error);
-    res.status(500).json({ error: 'Failed to upload image' });
-  }
+		res.status(201).json({
+			message: 'Image uploaded successfully',
+			image,
+		});
+	} catch (error) {
+		console.error('Upload error:', error);
+		res.status(500).json({ error: 'Failed to upload image' });
+	}
 };
 
 // Get all images for a user
-export const getUserImages = async (req: Request, res: Response) => {
-  try {
-    const { userId } = req.params;
+export const getUserImages = async (req: AuthRequest, res: Response) => {
+	try {
+		if (!req.user) {
+			return res.status(401).json({ error: 'Authentication required' });
+		}
 
-    const images = await prisma.image.findMany({
-      where: { userId },
-      orderBy: { uploadedAt: 'desc' },
-    });
+		// Get images for authenticated user
+		const images = await prisma.image.findMany({
+			where: { userId: req.user.id },
+			orderBy: { uploadedAt: 'desc' },
+		});
 
-    res.status(200).json({ images });
-  } catch (error) {
-    console.error('Get images error:', error);
-    res.status(500).json({ error: 'Failed to fetch images' });
-  }
+		res.status(200).json({ images });
+	} catch (error) {
+		console.error('Get images error:', error);
+		res.status(500).json({ error: 'Failed to fetch images' });
+	}
 };
 
 // Get single image by ID
-export const getImageById = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
+export const getImageById = async (req: AuthRequest, res: Response) => {
+	try {
+		if (!req.user) {
+			return res.status(401).json({ error: 'Authentication required' });
+		}
 
-    const image = await prisma.image.findUnique({
-      where: { id },
-      include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-          },
-        },
-      },
-    });
+		const { id } = req.params;
 
-    if (!image) {
-      return res.status(404).json({ error: 'Image not found' });
-    }
+		const image = await prisma.image.findUnique({
+			where: { id },
+			include: {
+				user: {
+					select: {
+						id: true,
+						email: true,
+					},
+				},
+			},
+		});
 
-    res.status(200).json({ image });
-  } catch (error) {
-    console.error('Get image error:', error);
-    res.status(500).json({ error: 'Failed to fetch image' });
-  }
+		if (!image) {
+			return res.status(404).json({ error: 'Image not found' });
+		}
+
+		// Verify ownership
+		if (image.userId !== req.user.id) {
+			return res.status(403).json({ error: 'Access denied. You do not own this image.' });
+		}
+
+		res.status(200).json({ image });
+	} catch (error) {
+		console.error('Get image error:', error);
+		res.status(500).json({ error: 'Failed to fetch image' });
+	}
 };
 
 // Delete image from Cloudinary and database
-export const deleteImage = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
+export const deleteImage = async (req: AuthRequest, res: Response) => {
+	try {
+		if (!req.user) {
+			return res.status(401).json({ error: 'Authentication required' });
+		}
 
-    // Find the image first
-    const image = await prisma.image.findUnique({
-      where: { id },
-    });
+		const { id } = req.params;
 
-    if (!image) {
-      return res.status(404).json({ error: 'Image not found' });
-    }
+		// Find the image first
+		const image = await prisma.image.findUnique({
+			where: { id },
+		});
 
-    // Delete from Cloudinary
-    await cloudinary.uploader.destroy(image.cloudinaryId);
+		if (!image) {
+			return res.status(404).json({ error: 'Image not found' });
+		}
 
-    // Delete from database
-    await prisma.image.delete({
-      where: { id },
-    });
+		// Verify ownership
+		if (image.userId !== req.user.id) {
+			return res.status(403).json({ error: 'Access denied. You do not own this image.' });
+		}
 
-    res.status(200).json({ message: 'Image deleted successfully' });
-  } catch (error) {
-    console.error('Delete image error:', error);
-    res.status(500).json({ error: 'Failed to delete image' });
-  }
+		// Delete from Cloudinary
+		await cloudinary.uploader.destroy(image.cloudinaryId);
+
+		// Delete from database
+		await prisma.image.delete({
+			where: { id },
+		});
+
+		res.status(200).json({ message: 'Image deleted successfully' });
+	} catch (error) {
+		console.error('Delete image error:', error);
+		res.status(500).json({ error: 'Failed to delete image' });
+	}
 };
