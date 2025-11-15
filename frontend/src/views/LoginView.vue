@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { validateEmail } from '@/utils/validation'
@@ -10,6 +10,10 @@ const authStore = useAuthStore()
 const email = ref('')
 const password = ref('')
 const validationError = ref('')
+
+onMounted(() => {
+  authStore.clearError()
+})
 
 const handleSubmit = async () => {
   validationError.value = ''

@@ -29,6 +29,7 @@ export async function verifyPassword(
  * Requirements:
  * - Minimum 8 characters
  * - At least 1 uppercase letter
+ * - At least 1 lowercase letter
  * - At least 1 number
  * - At least 1 special character
  * @param password - Plain text password to validate
@@ -49,6 +50,13 @@ export function validatePasswordStrength(password: string): {
     return {
       isValid: false,
       error: 'Password must contain at least one uppercase letter',
+    };
+  }
+
+  if (!/[a-z]/.test(password)) {
+    return {
+      isValid: false,
+      error: 'Password must contain at least one lowercase letter',
     };
   }
 
