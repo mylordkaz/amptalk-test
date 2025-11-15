@@ -84,3 +84,46 @@ export const mockCloudinaryResponse = {
   bytes: 102400,
   created_at: '2024-01-01T00:00:00Z',
 };
+
+// Auth test credentials
+export const validCredentials = {
+  email: 'valid@example.com',
+  password: 'ValidPass123!',
+};
+
+export const invalidCredentials = {
+  wrongPassword: {
+    email: 'test@example.com',
+    password: 'WrongPassword123!',
+  },
+  nonExistentUser: {
+    email: 'nonexistent@example.com',
+    password: 'Password123!',
+  },
+  weakPassword: {
+    email: 'test@example.com',
+    password: 'weak',
+  },
+  invalidEmail: {
+    email: 'invalid-email',
+    password: 'ValidPass123!',
+  },
+};
+
+// Password test cases
+export const passwordTestCases = {
+  valid: 'StrongPass123!',
+  tooShort: 'Pass1!',
+  noUppercase: 'weakpass123!',
+  noNumber: 'WeakPassword!',
+  noSpecialChar: 'WeakPassword123',
+  missingAll: 'weak',
+};
+
+// Mock JWT tokens
+export const mockTokens = {
+  valid: 'valid-jwt-token-123',
+  invalid: 'invalid-jwt-token',
+  expired: 'expired-jwt-token',
+  malformed: 'malformed.token',
+};
