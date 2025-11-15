@@ -7,6 +7,15 @@ export const mockUser = {
   updatedAt: new Date('2024-01-01'),
 };
 
+// Another user for ownership verification tests
+export const mockOtherUser = {
+  id: 'test-user-id-999',
+  email: 'other@example.com',
+  password: '$2a$10$mockHashedPassword2',
+  createdAt: new Date('2024-01-02'),
+  updatedAt: new Date('2024-01-02'),
+};
+
 // Sample image data for testing
 export const mockImage = {
   id: 'test-image-id-456',
@@ -53,6 +62,18 @@ export const mockImages = [
   },
 ];
 
+// Image owned by another user for ownership verification tests
+export const mockOtherUserImage = {
+  id: 'test-image-id-other',
+  userId: 'test-user-id-999',
+  filename: 'other-user-image.jpg',
+  publicUrl: 'https://res.cloudinary.com/mock/image/upload/v1234567890/other-image.jpg',
+  cloudinaryId: 'mock-cloudinary-id-other',
+  uploadedAt: new Date('2024-01-04'),
+  fileSize: 1536000,
+  mimeType: 'image/jpeg',
+};
+
 // Cloudinary upload response
 export const mockCloudinaryResponse = {
   public_id: 'mock-public-id-123',
@@ -62,4 +83,47 @@ export const mockCloudinaryResponse = {
   height: 600,
   bytes: 102400,
   created_at: '2024-01-01T00:00:00Z',
+};
+
+// Auth test credentials
+export const validCredentials = {
+  email: 'valid@example.com',
+  password: 'ValidPass123!',
+};
+
+export const invalidCredentials = {
+  wrongPassword: {
+    email: 'test@example.com',
+    password: 'WrongPassword123!',
+  },
+  nonExistentUser: {
+    email: 'nonexistent@example.com',
+    password: 'Password123!',
+  },
+  weakPassword: {
+    email: 'test@example.com',
+    password: 'weak',
+  },
+  invalidEmail: {
+    email: 'invalid-email',
+    password: 'ValidPass123!',
+  },
+};
+
+// Password test cases
+export const passwordTestCases = {
+  valid: 'StrongPass123!',
+  tooShort: 'Pass1!',
+  noUppercase: 'weakpass123!',
+  noNumber: 'WeakPassword!',
+  noSpecialChar: 'WeakPassword123',
+  missingAll: 'weak',
+};
+
+// Mock JWT tokens
+export const mockTokens = {
+  valid: 'valid-jwt-token-123',
+  invalid: 'invalid-jwt-token',
+  expired: 'expired-jwt-token',
+  malformed: 'malformed.token',
 };
