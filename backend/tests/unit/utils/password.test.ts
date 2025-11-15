@@ -135,7 +135,7 @@ describe('Password Utilities', () => {
     });
 
     it('should accept very long password', () => {
-      const longPassword = 'A'.repeat(50) + '1!';
+      const longPassword = 'A'.repeat(49) + 'a1!';
       const result = validatePasswordStrength(longPassword);
 
       expect(result.isValid).toBe(true);
