@@ -245,14 +245,14 @@ onMounted(() => {
         <!-- Page numbers -->
         <div class="flex space-x-2">
           <!-- First page if not in range -->
-          <template v-if="pageNumbers[0] > 1">
+          <template v-if="pageNumbers.length > 0 && pageNumbers[0]! > 1">
             <button
               @click="goToPage(1)"
               class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
             >
               1
             </button>
-            <span v-if="pageNumbers[0] > 2" class="px-2 py-2 text-gray-500">...</span>
+            <span v-if="pageNumbers[0]! > 2" class="px-2 py-2 text-gray-500">...</span>
           </template>
 
           <!-- Page number buttons -->
@@ -271,8 +271,8 @@ onMounted(() => {
           </button>
 
           <!-- Last page if not in range -->
-          <template v-if="pageNumbers[pageNumbers.length - 1] < totalPages">
-            <span v-if="pageNumbers[pageNumbers.length - 1] < totalPages - 1" class="px-2 py-2 text-gray-500">...</span>
+          <template v-if="pageNumbers.length > 0 && pageNumbers[pageNumbers.length - 1]! < totalPages">
+            <span v-if="pageNumbers[pageNumbers.length - 1]! < totalPages - 1" class="px-2 py-2 text-gray-500">...</span>
             <button
               @click="goToPage(totalPages)"
               class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"

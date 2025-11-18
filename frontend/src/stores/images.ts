@@ -43,7 +43,7 @@ export const useImageStore = defineStore('images', () => {
       if (!isCleared.value) {
         error.value = errorMessage
       }
-      throw new Error(errorMessage, { cause: err })
+      throw new Error(errorMessage)
     } finally {
       if (!isCleared.value) {
         isLoading.value = false
@@ -73,7 +73,7 @@ export const useImageStore = defineStore('images', () => {
       if (!isCleared.value) {
         error.value = errorMessage
       }
-      throw new Error(errorMessage, { cause: err })
+      throw new Error(errorMessage)
     } finally {
       if (!isCleared.value) {
         isUploading.value = false
@@ -104,7 +104,7 @@ export const useImageStore = defineStore('images', () => {
       if (!isCleared.value) {
         error.value = errorMessage
       }
-      throw new Error(errorMessage, { cause: err })
+      throw new Error(errorMessage)
     } finally {
       if (!isCleared.value) {
         // Remove from the array of images being deleted
@@ -132,6 +132,7 @@ export const useImageStore = defineStore('images', () => {
     isUploading,
     deletingImageIds,
     error,
+    isCleared,
     sortedImages,
     imageCount,
     isDeletingAny,
