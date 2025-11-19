@@ -3,6 +3,12 @@ import { ref, computed } from 'vue'
 import type { Image } from '@/types/image'
 import { imageApi } from '@/api/images'
 
+export interface UploadStatus {
+  filename: string
+  status: 'pending' | 'uploading' | 'success' | 'failed'
+  error?: string
+}
+
 export const useImageStore = defineStore('images', () => {
   const images = ref<Image[]>([])
   const isLoading = ref<boolean>(false)
@@ -10,6 +16,10 @@ export const useImageStore = defineStore('images', () => {
   const deletingImageIds = ref<string[]>([])
   const error = ref<string | null>(null)
   const isCleared = ref<boolean>(false)
+
+  // Multi-upload tracking
+  const uploadingFiles = ref<Map<string, UploadStatus>>(new Map())
+  const totalUploadCount = ref<number>(0)
 
   const sortedImages = computed(() => {
     return [...images.value].sort(
@@ -22,6 +32,34 @@ export const useImageStore = defineStore('images', () => {
   const isDeletingAny = computed(() => deletingImageIds.value.length > 0)
 
   const isDeletingImage = (id: string) => deletingImageIds.value.includes(id)
+
+  // Multi-upload computed properties
+  const uploadingCount = computed(() => {
+    let count = 0
+    uploadingFiles.value.forEach((status) => {
+      if (status.status === 'uploading' || status.status === 'pending') {
+        count++
+      }
+    })
+    return count
+  })
+
+  const uploadedCount = computed(() => {
+    let count = 0
+    uploadingFiles.value.forEach((status) => {
+      if (status.status === 'success' || status.status === 'failed') {
+        count++
+      }
+    })
+    return count
+  })
+
+  const uploadProgress = computed(() => {
+    if (totalUploadCount.value === 0) return 0
+    return Math.round((uploadedCount.value / totalUploadCount.value) * 100)
+  })
+
+  const isUploadingAny = computed(() => uploadingCount.value > 0 || isUploading.value)
 
   async function fetchImages(): Promise<void> {
     // Prevent concurrent fetch requests
@@ -81,6 +119,94 @@ export const useImageStore = defineStore('images', () => {
     }
   }
 
+  async function uploadImages(files: File[]): Promise<{ success: number; failed: number; errors: string[] }> {
+    isCleared.value = false
+
+    // Only clear non-validation errors
+    const validationError = error.value?.startsWith('[VALIDATION]') ? error.value : null
+    error.value = validationError
+
+    // Initialize upload tracking
+    uploadingFiles.value.clear()
+    totalUploadCount.value = files.length
+
+    // Create unique IDs for each file and set initial status
+    const fileIds = new Map<File, string>()
+    files.forEach((file, index) => {
+      const fileId = `${file.name}-${Date.now()}-${index}`
+      fileIds.set(file, fileId)
+      uploadingFiles.value.set(fileId, {
+        filename: file.name,
+        status: 'pending',
+      })
+    })
+
+    const CONCURRENCY_LIMIT = 3
+    let successCount = 0
+    let failedCount = 0
+    const errorMessages: string[] = []
+
+    // Upload files in batches with concurrency limit
+    const uploadFile = async (file: File): Promise<void> => {
+      const fileId = fileIds.get(file)!
+      const status = uploadingFiles.value.get(fileId)!
+
+      try {
+        // Update status to uploading
+        uploadingFiles.value.set(fileId, { ...status, status: 'uploading' })
+
+        const response = await imageApi.uploadImage(file)
+
+        if (isCleared.value) return
+
+        // Add the new image to the beginning of the array
+        images.value.unshift(response.image)
+
+        // Update status to success
+        uploadingFiles.value.set(fileId, { ...status, status: 'success' })
+        successCount++
+      } catch (err: any) {
+        const errorMessage = err.response?.data?.error || err.message || 'Upload failed'
+
+        if (!isCleared.value) {
+          uploadingFiles.value.set(fileId, {
+            ...status,
+            status: 'failed',
+            error: errorMessage
+          })
+          errorMessages.push(`${file.name}: ${errorMessage}`)
+          failedCount++
+        }
+      }
+    }
+
+    // Process files in batches
+    for (let i = 0; i < files.length; i += CONCURRENCY_LIMIT) {
+      const batch = files.slice(i, i + CONCURRENCY_LIMIT)
+      await Promise.allSettled(batch.map(file => uploadFile(file)))
+
+      if (isCleared.value) break
+    }
+
+    // Set error if any uploads failed
+    if (failedCount > 0 && !isCleared.value) {
+      const uploadError = `[UPLOAD] ${failedCount} of ${files.length} uploads failed:\n${errorMessages.join('\n')}`
+
+      // If there's already a validation error, append upload error
+      if (error.value?.startsWith('[VALIDATION]')) {
+        error.value = `${error.value}\n\n${uploadError}`
+      } else {
+        error.value = uploadError
+      }
+    }
+
+    return {
+      success: successCount,
+      failed: failedCount,
+      errors: errorMessages
+    }
+  }
+
   async function deleteImage(id: string): Promise<void> {
     if (isDeletingImage(id)) {
       return
@@ -124,6 +250,9 @@ export const useImageStore = defineStore('images', () => {
     isLoading.value = false
     isUploading.value = false
     deletingImageIds.value = []
+    // Clear multi-upload state
+    uploadingFiles.value.clear()
+    totalUploadCount.value = 0
   }
 
   return {
@@ -137,8 +266,17 @@ export const useImageStore = defineStore('images', () => {
     imageCount,
     isDeletingAny,
     isDeletingImage,
+    // Multi-upload state
+    uploadingFiles,
+    totalUploadCount,
+    uploadingCount,
+    uploadedCount,
+    uploadProgress,
+    isUploadingAny,
+    // Actions
     fetchImages,
     uploadImage,
+    uploadImages,
     deleteImage,
     clearError,
     clearImages,

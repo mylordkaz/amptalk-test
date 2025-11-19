@@ -86,6 +86,17 @@ const displayFilename = computed(() => truncateFilename(props.image.filename, 25
         <div class="flex items-center">
           <svg class="w-4 h-4 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+          </svg>
+          <span>{{ formatDate(image.uploadedAt) }}</span>
+        </div>
+        <div class="flex items-center">
+          <svg class="w-4 h-4 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
               stroke-linecap="round"
               stroke-linejoin="round"
               stroke-width="2"
@@ -95,16 +106,25 @@ const displayFilename = computed(() => truncateFilename(props.image.filename, 25
           <span>{{ formatFileSize(image.fileSize) }}</span>
         </div>
 
+
         <div class="flex items-center">
           <svg class="w-4 h-4 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
               stroke-width="2"
-              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
             />
           </svg>
-          <span>{{ formatDate(image.uploadedAt) }}</span>
+          <a
+            :href="image.publicUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-blue-600 hover:text-blue-700 hover:underline truncate"
+            @click.stop
+          >
+            Image URL
+          </a>
         </div>
       </div>
 
