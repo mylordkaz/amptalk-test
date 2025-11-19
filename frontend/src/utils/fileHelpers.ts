@@ -11,10 +11,17 @@ export const ACCEPTED_IMAGE_TYPES = [
 ] as const
 
 export const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB in bytes
+export const MAX_UPLOAD_BATCH_SIZE = 10 // Maximum files per upload
 
 export interface FileValidationResult {
   valid: boolean
   error?: string
+}
+
+export interface BatchValidationResult {
+  valid: File[]
+  invalid: Map<File, string>
+  tooManyFiles: boolean
 }
 
 /**
@@ -114,4 +121,40 @@ export function truncateFilename(filename: string, maxLength: number = 30): stri
   const truncatedName = nameWithoutExt.substring(0, maxLength - extension.length - 3)
 
   return `${truncatedName}...${extension}`
+}
+
+/**
+ * Validates multiple image files for batch upload
+ * @param files - Array of files to validate
+ * @returns Validation result with valid files, invalid files with reasons, and batch size check
+ */
+export function validateImageFiles(files: File[]): BatchValidationResult {
+  const valid: File[] = []
+  const invalid = new Map<File, string>()
+  const tooManyFiles = files.length > MAX_UPLOAD_BATCH_SIZE
+
+  // If too many files, reject entire batch
+  if (tooManyFiles) {
+    return {
+      valid: [],
+      invalid,
+      tooManyFiles
+    }
+  }
+
+  // Otherwise validate all files
+  for (const file of files) {
+    const result = validateImageFile(file)
+    if (result.valid) {
+      valid.push(file)
+    } else {
+      invalid.set(file, result.error || 'Unknown error')
+    }
+  }
+
+  return {
+    valid,
+    invalid,
+    tooManyFiles
+  }
 }
