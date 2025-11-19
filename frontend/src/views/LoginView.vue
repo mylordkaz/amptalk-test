@@ -42,6 +42,7 @@ const handleSubmit = async () => {
   <div class="min-h-screen flex items-center justify-center bg-gray-50">
     <div class="max-w-md w-full px-6">
       <div class="bg-white p-8 rounded-lg shadow-lg">
+        <img src="/atim.webp" alt="Logo" class="mx-auto mb-6 h-40 w-auto" />
         <h1 class="text-2xl font-bold text-center mb-6">Login</h1>
 
         <form @submit.prevent="handleSubmit" class="space-y-4">
