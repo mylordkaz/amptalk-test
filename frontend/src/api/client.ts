@@ -1,4 +1,6 @@
 import axios from 'axios'
+import { getToken, removeToken } from '@/utils/tokenStorage'
+import { isMobileDevice } from '@/utils/deviceDetection'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3005'
 
@@ -12,6 +14,13 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   (config) => {
+    if (isMobileDevice()) {
+      const token = getToken()
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`
+      }
+    }
+
     if (import.meta.env.DEV) {
       console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`)
     }
@@ -40,6 +49,7 @@ apiClient.interceptors.response.use(
       switch (status) {
         case 401:
           console.warn('Unauthorized access - user may need to login')
+          removeToken()
           break
         case 403:
           console.warn('Forbidden - insufficient permissions')

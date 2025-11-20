@@ -92,6 +92,7 @@ export async function register(req: Request, res: Response): Promise<void> {
         email: user.email,
         createdAt: user.createdAt,
       },
+      token,
     });
   } catch (error) {
     console.error('Registration error:', error);
@@ -170,6 +171,7 @@ export async function login(req: Request, res: Response): Promise<void> {
         email: user.email,
         createdAt: user.createdAt,
       },
+      token,
     });
   } catch (error) {
     console.error('Login error:', error);

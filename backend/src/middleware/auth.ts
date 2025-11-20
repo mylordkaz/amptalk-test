@@ -2,18 +2,20 @@ import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../types';
 import { verifyToken, getTokenCookieName } from '../utils/jwt';
 
-/**
- * Authentication middleware
- * Verifies JWT token from HTTP-only cookie and attaches user to request
- */
 export function authenticate(
   req: AuthRequest,
   res: Response,
   next: NextFunction
 ): void {
   try {
-    // Get token from cookie
-    const token = req.cookies[getTokenCookieName()];
+    let token = req.cookies[getTokenCookieName()];
+
+    if (!token) {
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+      }
+    }
 
     if (!token) {
       res.status(401).json({
@@ -23,7 +25,6 @@ export function authenticate(
       return;
     }
 
-    // Verify token
     const payload = verifyToken(token);
 
     if (!payload) {
@@ -34,7 +35,6 @@ export function authenticate(
       return;
     }
 
-    // Attach user info to request
     req.user = {
       id: payload.userId,
       email: payload.email,

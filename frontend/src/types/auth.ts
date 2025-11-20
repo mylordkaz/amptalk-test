@@ -19,6 +19,7 @@ export interface AuthResponse {
   success: true
   message: string
   user: User
+  token?: string // JWT token for mobile clients
 }
 
 export interface AuthError {
