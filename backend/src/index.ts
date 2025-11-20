@@ -15,6 +15,39 @@ const envOrigins = process.env.FRONTEND_URL
   : [];
 const allowedOrigins = envOrigins.length > 0 ? envOrigins : defaultOrigins;
 
+// Manual CORS middleware for Vercel serverless compatibility
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+
+  // Determine if origin is allowed
+  let isAllowed = false;
+  if (!origin) {
+    isAllowed = true;
+  } else if (allowedOrigins.includes(origin)) {
+    isAllowed = true;
+  } else if (origin.endsWith('.vercel.app')) {
+    isAllowed = true;
+  }
+
+  if (isAllowed && origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie');
+  res.setHeader('Access-Control-Expose-Headers', 'Set-Cookie');
+
+  // Handle preflight OPTIONS request
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
+  next();
+});
+
+// Keep the cors middleware as backup
 app.use(
   cors({
     origin(origin, callback) {
