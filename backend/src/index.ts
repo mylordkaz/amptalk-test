@@ -15,28 +15,33 @@ const envOrigins = process.env.FRONTEND_URL
   : [];
 const allowedOrigins = envOrigins.length > 0 ? envOrigins : defaultOrigins;
 
-// Manual CORS middleware for Vercel serverless compatibility
+// Simplified CORS middleware for unified Vercel deployment (develop branch)
+// For same-domain deployment, most CORS headers are not needed
+// For separate deployments (production: Cloudflare + Render), CORS is still configured
 app.use((req, res, next) => {
   const origin = req.headers.origin;
 
-  // Determine if origin is allowed
-  let isAllowed = false;
-  if (!origin) {
-    isAllowed = true;
-  } else if (allowedOrigins.includes(origin)) {
-    isAllowed = true;
-  } else if (origin.endsWith('.vercel.app')) {
-    isAllowed = true;
-  }
+  // Set CORS headers only when there's a different origin
+  // (same-domain requests won't have CORS issues)
+  if (origin) {
+    let isAllowed = false;
 
-  if (isAllowed && origin) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
+    if (allowedOrigins.includes(origin)) {
+      isAllowed = true;
+    } else if (origin.endsWith('.vercel.app')) {
+      isAllowed = true;
+    } else if (origin.includes('cloudflare')) {
+      isAllowed = true;
+    }
 
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie');
-  res.setHeader('Access-Control-Expose-Headers', 'Set-Cookie');
+    if (isAllowed) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie, X-Requested-With');
+      res.setHeader('Access-Control-Expose-Headers', 'Set-Cookie');
+    }
+  }
 
   // Handle preflight OPTIONS request
   if (req.method === 'OPTIONS') {
@@ -46,36 +51,6 @@ app.use((req, res, next) => {
 
   next();
 });
-
-// Keep the cors middleware as backup
-app.use(
-  cors({
-    origin(origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) {
-        return callback(null, true);
-      }
-
-      // Check if origin is in allowed list
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-
-      // Allow Vercel preview deployments (*.vercel.app)
-      if (origin.endsWith('.vercel.app')) {
-        return callback(null, true);
-      }
-
-      return callback(new Error("Origin not allowed by CORS"));
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
-    exposedHeaders: ['Set-Cookie'],
-    optionsSuccessStatus: 200,
-    preflightContinue: false,
-  }),
-);
 
 app.use(express.json());
 app.use(cookieParser());

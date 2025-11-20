@@ -1,6 +1,9 @@
 import axios from 'axios'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3005'
+// For unified Vercel deployment (develop branch): defaults to '/api' (same domain)
+// For local development: set VITE_API_BASE_URL='http://localhost:3005' in .env
+// For production (Cloudflare): set VITE_API_BASE_URL to Render backend URL
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
