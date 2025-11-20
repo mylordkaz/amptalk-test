@@ -12,7 +12,7 @@ import { isMobileDevice } from '@/utils/deviceDetection'
 export const authApi = {
   async register(data: RegisterData): Promise<AuthApiResponse> {
     const response = await apiClient.post<AuthApiResponse>('/api/auth/register', data)
-    if (response.data.token && isMobileDevice()) {
+    if (response.data.success && response.data.token && isMobileDevice()) {
       setToken(response.data.token)
     }
     return response.data
@@ -20,7 +20,7 @@ export const authApi = {
 
   async login(credentials: LoginCredentials): Promise<AuthApiResponse> {
     const response = await apiClient.post<AuthApiResponse>('/api/auth/login', credentials)
-    if (response.data.token && isMobileDevice()) {
+    if (response.data.success && response.data.token && isMobileDevice()) {
       setToken(response.data.token)
     }
     return response.data

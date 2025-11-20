@@ -20,15 +20,16 @@ const handleLogout = async () => {
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
         <div class="text-lg font-semibold text-gray-900">
-          Amptalk-Test Image management
+          <span class="sm:hidden">AT</span>
+          <span class="hidden sm:inline">Amptalk-Test Image management</span>
         </div>
-        <div class="flex items-center gap-4">
-          <span class="text-sm text-gray-700">
+        <div class="flex items-center gap-2 sm:gap-4">
+          <span class="hidden sm:inline text-sm text-gray-700">
             {{ authStore.currentUser?.email }}
           </span>
           <button
             @click="handleLogout"
-            class="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+            class="px-3 py-1.5 sm:px-4 sm:py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
             :disabled="authStore.loading"
           >
             {{ authStore.loading ? 'Logging out...' : 'Logout' }}
