@@ -75,9 +75,9 @@ export function verifyToken(token: string): JwtPayload | null {
 export function createTokenCookie(res: Response, token: string): void {
   res.cookie(TOKEN_COOKIE_NAME, token, {
     httpOnly: true,
-    secure: IS_PRODUCTION,
-    sameSite: IS_PRODUCTION ? "none" : "lax",
-    maxAge: JWT_EXPIRES_IN_MS, // Matches JWT token expiration
+    secure: true,
+    sameSite: "none",
+    maxAge: JWT_EXPIRES_IN_MS,
   });
 }
 
@@ -88,8 +88,8 @@ export function createTokenCookie(res: Response, token: string): void {
 export function clearTokenCookie(res: Response): void {
   res.clearCookie(TOKEN_COOKIE_NAME, {
     httpOnly: true,
-    secure: IS_PRODUCTION,
-    sameSite: IS_PRODUCTION ? "none" : "lax",
+    secure: true,
+    sameSite: "none",
   });
 }
 

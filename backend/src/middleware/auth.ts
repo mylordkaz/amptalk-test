@@ -11,7 +11,7 @@ export function authenticate(
     let token = req.cookies[getTokenCookieName()];
 
     if (!token) {
-      const authHeader = req.headers.authorization;
+      const authHeader = req.headers?.authorization;
       if (authHeader && authHeader.startsWith('Bearer ')) {
         token = authHeader.substring(7);
       }
