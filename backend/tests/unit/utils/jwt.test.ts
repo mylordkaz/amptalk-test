@@ -171,8 +171,8 @@ describe('JWT Utilities', () => {
 
       const options = cookieSpy.mock.calls[0][2];
       expect(options).toHaveProperty('secure');
-      // In test environment, secure should be false
-      expect(options.secure).toBe(false);
+      // Always true for HTTPS (cross-site deployment)
+      expect(options.secure).toBe(true);
     });
 
     it('should set sameSite based on environment', () => {
@@ -181,8 +181,8 @@ describe('JWT Utilities', () => {
 
       const options = cookieSpy.mock.calls[0][2];
       expect(options).toHaveProperty('sameSite');
-      // In test/development environment, sameSite should be 'lax'
-      expect(options.sameSite).toBe('lax');
+      // Always 'none' for cross-site deployment
+      expect(options.sameSite).toBe('none');
     });
 
     it('should set maxAge property', () => {
@@ -233,8 +233,8 @@ describe('JWT Utilities', () => {
 
       const options = clearCookieSpy.mock.calls[0][1];
       expect(options).toHaveProperty('sameSite');
-      // In test/development environment
-      expect(options.sameSite).toBe('lax');
+      // Always 'none' for cross-site deployment
+      expect(options.sameSite).toBe('none');
     });
   });
 
